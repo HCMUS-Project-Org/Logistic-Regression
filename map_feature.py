@@ -3,9 +3,9 @@ import numpy as np
 def map_feature(x1, x2):
 #   Returns a new feature array with more features, comprising of 
 #   x1, x2, x1.^2, x2.^2, x1*x2, x1*x2.^2, etc.
-
     degree = 6
-    out = np.ones([len(x1), (degree + 1) * (degree + 2) / 2])
+
+    out = np.ones([len(x1), (degree + 1) * (degree + 2) // 2])
     idx = 1
 
     for i in range(1, degree + 1):
@@ -16,3 +16,5 @@ def map_feature(x1, x2):
             idx += 1
 
     return out
+
+# print(map_feature(np.array([0.05,0.6]),np.array([0.48329,-0.18494])))

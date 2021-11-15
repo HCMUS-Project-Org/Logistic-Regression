@@ -1,16 +1,17 @@
+# Import library
 import  numpy as np
 import json
-from math import log
+from math import log, exp
 from map_feature import map_feature
 
-# - compute_cost: calculate the cost of model of data set (the formula for calculating cost function is provided in “3. The formulas”).
-def compute_cost(x, y, theta, lamda):
+# Compute_cost: calculate the cost of model of data set (the formula for calculating cost function is provided in “3. The formulas”).
+def compute_cost(x, y, theta, lamda): #DONE_not test yet!
     m = len(x)
     Jl = 0
     Jr = 0
 
     for i in range(len(x)):
-        h_theta = x[i] @ theta.T
+        h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
         Jl += -y[i] * log(h_theta) - (1-y[i]) * log(1 - h_theta)
 
     for j in range(len(theta)):
@@ -20,17 +21,36 @@ def compute_cost(x, y, theta, lamda):
 
     return J
     
-# - compute_gradient: calculate the gradient vector of the cost function (the formula for calculating the gradient vector is provided in “3. The formulas”).
-def compute_gradient():
-    pass
+# Compute_gradient: calculate the gradient vector of the cost function (the formula for calculating the gradient vector is provided in “3. The formulas”).
+def compute_gradient(x, y, theta, lamda): #DONE_not test yet!
+    dJ = []
+    m = len(x)
+    # dJ[0]
 
-# - gradient_descent: calculate the gradient descent.
-def gradient_descent():
-    pass
+    for j in range(len(theta)):
+        d_j = 0
 
-# - predict: predict whether a set of microchips are eligible to be sold on market (pass an array of 1 element for prediction of 1 microchip).
-def predict():
-    pass
+        for i in range(len(x)):
+            h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
+            d_j += (h_theta-y[i])*x[i][j]
+
+        d_j *= 1/m
+        if j != 0:
+            d_j += (lamda/m) * theta[j]
+        
+        dJ.append(d_j)
+        
+    return dJ
+
+
+# Gradient_descent: calculate the gradient descent.
+def gradient_descent(x, y, theta, lamda, alpha): #DONE_not test yet
+    dJ = compute_gradient(x, y, theta, lamda)
+
+    for j in range(len(theta)):
+        theta[j] -=  alpha*dJ[j]
+    
+    return theta
 
 # Read the training configuration from file config.json
 def read_training_configuration(): #DONE
@@ -48,33 +68,87 @@ def read_training_data(): #DONE
     x = np.c_[np.ones(len(x),dtype='int64'), x]
 
     y = datas[: , 2]
-    theta = np.zeros(x.shape[1])
-    return x, y, theta
+    return x, y
 
 # Training data from file training_data.txt.
-def training_data():
-    pass
+# ??????????????????????????????????????????
+def model_fit(x, y, alpha, lamda, numiter):
+    # theta = np.zeros(x.shape[1])
+
+    # for i in range(numiter):
+    #     theta = gradient_descent(x, y, theta, lamda, alpha)
+    #     compute_cost(x, y, theta, lamda)
+    #     theta = None
+    #     print('Iter',i+1,', cost function =',compute_cost(x, y, theta, lamda))
+
+    return theta
 
 # Save model to file model.json.
-def save_model():
-    pass
+def save_model(theta): #DONE_not test yet
+    with open('model.json', 'w') as file:
+        json.dump({'theta: ': theta}, file)
 
-# Make prediction of training data set, save result to file accuracy.json.
-def prediction():
-    pass
+# Predict: predict whether a set of microchips are eligible to be sold on market (pass an array of 1 element for prediction of 1 microchip).
+# INPUT: [a, b] with a, b is feature
+def predict(x, theta): #DONE_not test yet
+    h_theta = 1 / (1 + exp(-(x @ theta.T)))
+    if h_theta < 0.5:
+        y = 0
+    else:
+        y = 1
 
-# Calculate accuracy of training data set, save result to file accuracy.json.
-def calculate_accuracy():
-    pass
+    return y
+
+# Calculate  accuracy  of  training  data  set
+def calculate_accuracy(x, y, theta): #DONE_not test yet
+    pred = predict(x, theta)
+    correct = 0
+
+    for i in range(len(y)):
+        if pred[i] == y[i]:
+            correct += 1
+    accuracy =  (correct/len(y)) * 100
+    return accuracy
+
+# Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
+# x_predict = [0.2, 0.05] INPUT 1 microchip feature
+def save_predict_accuracy(x_predict, x, y, theta, lamda): #DONE_not test yet
+    accuracy = calculate_accuracy(x, y, theta)
+    cost = compute_cost(x, y, theta, lamda)
+    pred =  predict(x_predict, theta)
+
+    with open('accuracy.json', 'w') as file:
+        result = {
+            'Feature 1: ': x_predict[0],
+            'Feature 2: ': x_predict[1],
+            'Eligible: ': pred,
+            'Accuracy: ': accuracy,
+            'Cost function:': cost
+        }
+        json.dump(result, file)
+
+    return accuracy, cost, pred
 
 #-----------------------------------------------------------
 # Main program:
 if __name__ == '__main__':
-    pass
-# - Read the training configuration from file config.json.
+    # - Read the training configuration from file config.json.
+    alpha, lamda, numiter = read_training_configuration()
+    
+    # - Training data from file training_data.txt.
+    x, y = read_training_data()
+    theta = model_fit(x, y, alpha, lamda, numiter)
 
-# - Training data from file training_data.txt.
+    # - Save model to file model.json.
+    save_model(theta)
 
-# - Save model to file model.json.
+    # - Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
+    x_predict = None
+    accuracy, cost, pred = save_predict_accuracy(x_predict, x, y, theta, lamda)
 
-# - Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
+    print('Feature 1:', x_predict[0])
+    print('Feature 2:', x_predict[1])
+    print('Predict:', pred)
+    print('----------------------')
+    print('Cost function:', cost)
+    print('Accuracy:', accuracy)
