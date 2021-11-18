@@ -71,15 +71,14 @@ def read_training_data(): #DONE
     return x, y
 
 # Training data from file training_data.txt.
-# ??????????????????????????????????????????
 def model_fit(x, y, alpha, lamda, numiter):
-    # theta = np.zeros(x.shape[1])
+    theta = np.zeros(x.shape[1])
 
-    # for i in range(numiter):
-    #     theta = gradient_descent(x, y, theta, lamda, alpha)
-    #     compute_cost(x, y, theta, lamda)
-    #     theta = None
-    #     print('Iter',i+1,', cost function =',compute_cost(x, y, theta, lamda))
+    for i in range(numiter):
+        theta = gradient_descent(x, y, theta, lamda, alpha)
+        cost = compute_cost(x, y, theta, lamda)
+        
+        print('Iter: {} - theta = {} - cost function = {}'.format(i+1, theta, cost))
 
     return theta
 
