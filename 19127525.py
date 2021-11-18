@@ -1,7 +1,7 @@
 # Import library
 import  numpy as np
 import json
-from math import log10, exp
+from math import log, exp
 from map_feature import map_feature
 
 # Compute_cost: calculate the cost of model of data set (the formula for calculating cost function is provided in “3. The formulas”).
@@ -12,7 +12,7 @@ def compute_cost(x, y, theta, lamda): #DONE_not test yet!
 
     for i in range(len(x)):
         h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
-        Jl += -y[i] * log10(h_theta) - (1-y[i]) * log10(1 - h_theta)
+        Jl += -y[i] * log(h_theta) - (1-y[i]) * log(1 - h_theta)
 
     for j in range(len(theta)):
         Jr += theta[j]**2
@@ -73,7 +73,7 @@ def read_training_data(): #DONE
 # Training data from file training_data.txt.
 def model_fit(x, y, alpha, lamda, numiter):
     theta = np.zeros(x.shape[1])
-
+    print('Iter: {} - theta = {} - cost function = {}'.format(0, theta, compute_cost(x, y, theta, lamda)))
     for i in range(numiter):
         theta = gradient_descent(x, y, theta, lamda, alpha)
         cost = compute_cost(x, y, theta, lamda)
@@ -83,13 +83,18 @@ def model_fit(x, y, alpha, lamda, numiter):
     return theta
 
 # Save model to file model.json.
-def save_model(theta): #DONE_not test yet
+def save_model(theta): #DONE
+    model = {
+        'theta': theta.tolist()
+    }
+
     with open('model.json', 'w') as file:
-        json.dump({'theta: ': theta}, file)
+        json.dump(model, file)
+    print('Save....DONE')
 
 # Predict: predict whether a set of microchips are eligible to be sold on market (pass an array of 1 element for prediction of 1 microchip).
 # INPUT: [a, b] with a, b is feature
-def predict(x, theta): #DONE_not test yet
+def predict(x, theta): #DONE
     h_theta = 1 / (1 + exp(-(x @ theta.T)))
     if h_theta < 0.5:
         y = 0
@@ -99,8 +104,10 @@ def predict(x, theta): #DONE_not test yet
     return y
 
 # Calculate  accuracy  of  training  data  set
-def calculate_accuracy(x, y, theta): #DONE_not test yet
-    pred = predict(x, theta)
+def calculate_accuracy(x, y, theta): #DONE
+    pred = []
+    for i in range(len(x)):
+        pred.append(predict(x[i], theta))
     correct = 0
 
     for i in range(len(y)):
@@ -112,6 +119,9 @@ def calculate_accuracy(x, y, theta): #DONE_not test yet
 # Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
 # x_predict = [0.2, 0.05] INPUT 1 microchip feature
 def save_predict_accuracy(x_predict, x, y, theta, lamda): #DONE_not test yet
+    x_predict.insert(0,1)
+    x_predict = np.array(x_predict)
+
     accuracy = calculate_accuracy(x, y, theta)
     cost = compute_cost(x, y, theta, lamda)
     pred =  predict(x_predict, theta)
@@ -138,12 +148,14 @@ if __name__ == '__main__':
     x, y = read_training_data()
     theta = model_fit(x, y, alpha, lamda, numiter)
 
+    # print(theta)
     # - Save model to file model.json.
     save_model(theta)
 
     # - Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
-    x_predict = None
+    x_predict = [0.0513, 0.6996]
     accuracy, cost, pred = save_predict_accuracy(x_predict, x, y, theta, lamda)
+
 
     print('Feature 1:', x_predict[0])
     print('Feature 2:', x_predict[1])
