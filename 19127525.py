@@ -1,8 +1,11 @@
 # Import library
 import  numpy as np
 import json
-from math import log, exp
 from map_feature import map_feature
+import matplotlib.pyplot as plt
+# from matplotlib.colors import ListedColormap
+
+
 
 # Compute_cost: calculate the cost of model of data set (the formula for calculating cost function is provided in “3. The formulas”).
 def compute_cost(x, y, theta, lamda): #DONE_not test yet!
@@ -83,15 +86,13 @@ def read_training_data(): #DONE
     x1 = np.array(x_raw[:,0])
     x2 = np.array(x_raw[:,1])
     X0 = map_feature(x1, x2)
-
     x = np.c_[np.ones(len(X0),dtype='int64'), X0]
-
-    # x = np.c_[np.ones(len(x_raw),dtype='int64'), x_raw]
-
+   
     y = datas[: , 2]
+
     theta = np.zeros(x.shape[1])
 
-    return x, y, theta
+    return x_raw, x, y, theta
 
 # Training data from file training_data.txt.
 def model_fit(x, y, theta, alpha, lamda, numiter):
@@ -99,7 +100,9 @@ def model_fit(x, y, theta, alpha, lamda, numiter):
         theta = gradient_descent(x, y, theta, lamda, alpha)
         cost = compute_cost(x, y, theta, lamda)
         
-        print('Iter: {} - cost function = {}'.format(i+1, cost))
+        print('Iter: {} - cost = {}'.format(i+1, cost))
+    
+    print('Train model...DONE!')
 
     return theta
 
@@ -111,16 +114,12 @@ def save_model(theta): #DONE
 
     with open('model.json', 'w') as file:
         json.dump(model, file)
-    print('Save....DONE')
+    
+    print('Save model....DONE!')
 
 # Predict: predict whether a set of microchips are eligible to be sold on market (pass an array of 1 element for prediction of 1 microchip).
 # INPUT: [a, b] with a, b is feature
 def predict(x, theta): #DONE
-    print('-------------------------')
-    print(x)
-    print('len:',len(x))
-    print(theta)
-    print('len:', len(theta))
     h_theta = sigmoid(x, theta)
     if h_theta < 0.5:
         y = 0
@@ -140,31 +139,57 @@ def calculate_accuracy(x, y, theta): #DONE
         if pred[i] == y[i]:
             correct += 1
     accuracy =  (correct/len(y)) * 100
+
+    print('Caculate accuracy...DONE!')
     return accuracy
 
 # Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
 # x_predict = [0.2, 0.05] INPUT 1 microchip feature
-def save_predict_accuracy(x_predict, x, y, theta, lamda): #DONE_not test yet
-    x_predict.insert(0,1)
-    x_predict = np.array(x_predict)
-
+def save_predict_accuracy(x, y, theta, lamda): #DONE
     accuracy = calculate_accuracy(x, y, theta)
     cost = compute_cost(x, y, theta, lamda)
-    # pred =  predict(x_predict, theta)
-    pred = 0
 
     with open('accuracy.json', 'w') as file:
         result = {
-            'Feature 1: ': x_predict[0],
-            'Feature 2: ': x_predict[1],
-            'Eligible: ': pred,
             'Accuracy: ': accuracy,
             'Cost function:': cost
         }
         json.dump(result, file)
 
-    # return accuracy, cost
-    return accuracy, cost, pred
+    print('Save accuracy...DONE!')
+    return accuracy, cost
+
+def ploting_decision_boundary(x_raw, y, theta):
+    xs = np.linspace(min(x_raw[:,0]),max(y),num=10)
+    ys = np.linspace(min(x_raw[:,0]),max(y),num=10)
+    data0 = x_raw[y==0]
+    data1 = x_raw[y==1]
+
+    X_grid,Y_grid = np.meshgrid(xs,ys)
+    Z_grid = np.zeros(shape=(len(ys),len(xs)))
+    
+    for i in range(len(xs)):
+        for j in range(len(ys)):
+            x1, x2 = [xs[i],ys[j]]
+
+            # convert 2 feature to 28 feature
+            X = map_feature(np.array([x1]),np.array([x2]))
+            X = np.concatenate((np.array([[1]]),X),axis=1)
+
+            value = predict(X, theta)
+            Z_grid[j,i] = value
+            
+    plt.contourf(X_grid, Y_grid, Z_grid)
+    plt.scatter(data0[:,0],data0[:,1],label='y=0')
+    plt.scatter(data1[:,0],data1[:,1],label='y=1')
+    plt.title('Logistic Regression\nPredict whether a factory microchip is eligible to be sold on market')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    print('Draw decision boundary...DONE!')
 
 #-----------------------------------------------------------
 # Main program:
@@ -173,21 +198,20 @@ if __name__ == '__main__':
     alpha, lamda, numiter = read_training_configuration()
     
     # - Training data from file training_data.txt.
-    x, y, theta = read_training_data()
+    x_raw, x, y, theta = read_training_data()
     theta = model_fit(x, y, theta, alpha, lamda, numiter)
 
-    # print(theta)
     # - Save model to file model.json.
     save_model(theta)
 
     # - Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
-    x_predict = [0.0513, 0.6996]
-    accuracy, cost, pred = save_predict_accuracy(x_predict, x, y, theta, lamda)
+    accuracy, cost = save_predict_accuracy(x, y, theta, lamda)
 
+    print('------------------------------')
+    print('Cost function:', round(cost,3))
+    print('Accuracy: {} %'. format(round(accuracy,3)))
+    print('------------------------------')
 
-    print('Feature 1:', x_predict[0])
-    print('Feature 2:', x_predict[1])
-    print('Predict:', pred)
-    print('----------------------')
-    print('Cost function:', cost)
-    print('Accuracy:', accuracy)
+    # Draw decision boundary
+    ploting_decision_boundary(x_raw, y, theta)
+

@@ -17,4 +17,4 @@ def map_feature(x1, x2):
 
     return out
 
-# print(map_feature(np.array([0.05,0.6]),np.array([0.48329,-0.18494])))
+# print(map_feature(np.array(0.05),np.array(-0.18494)))
