@@ -9,10 +9,19 @@ def compute_cost(x, y, theta, lamda): #DONE_not test yet!
     m = len(x)
     Jl = 0
     Jr = 0
+    # print('-------------------------')
+    # print(x)
+    # print('len:',len(x),len(x[0]))
+    # print(theta)
+    # print('len:', len(theta))
 
-    for i in range(len(x)):
-        h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
-        Jl += -y[i] * log(h_theta) - (1-y[i]) * log(1 - h_theta)
+    for i in range(len(x)-1):
+        # print(i)
+        # print('x0:',x[0])
+        # print('theta0:',theta)
+        # h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
+        h_theta = sigmoid(x[i], theta)
+        Jl += -y[i] * np.log(h_theta) - (1-y[i]) * np.log(1 - h_theta)
 
     for j in range(len(theta)):
         Jr += theta[j]**2
@@ -21,17 +30,21 @@ def compute_cost(x, y, theta, lamda): #DONE_not test yet!
 
     return J
     
+
+def sigmoid(x, theta):
+    return 1/(1 + np.exp(-(x @ theta.T)))
+
 # Compute_gradient: calculate the gradient vector of the cost function (the formula for calculating the gradient vector is provided in “3. The formulas”).
 def compute_gradient(x, y, theta, lamda): #DONE_not test yet!
     dJ = []
     m = len(x)
-    # dJ[0]
 
     for j in range(len(theta)):
         d_j = 0
 
         for i in range(len(x)):
-            h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
+            # h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
+            h_theta =  sigmoid(x[i],theta)
             d_j += (h_theta-y[i])*x[i][j]
 
         d_j *= 1/m
@@ -59,26 +72,34 @@ def read_training_configuration(): #DONE
         configs = json.load(f)
     return configs['Alpha'], configs['Lambda'], configs['NumIter']
 
+
+    
 # Read the training data from file training_data.txt
 def read_training_data(): #DONE
     datas = np.loadtxt('training_data.txt', delimiter = ',')
     
     # classify data into x, y
-    x = datas[: , 0:2]
-    x = np.c_[np.ones(len(x),dtype='int64'), x]
+    x_raw = datas[: , 0:2]
+    x1 = np.array(x_raw[:,0])
+    x2 = np.array(x_raw[:,1])
+    X0 = map_feature(x1, x2)
+
+    x = np.c_[np.ones(len(X0),dtype='int64'), X0]
+
+    # x = np.c_[np.ones(len(x_raw),dtype='int64'), x_raw]
 
     y = datas[: , 2]
-    return x, y
+    theta = np.zeros(x.shape[1])
+
+    return x, y, theta
 
 # Training data from file training_data.txt.
-def model_fit(x, y, alpha, lamda, numiter):
-    theta = np.zeros(x.shape[1])
-    print('Iter: {} - theta = {} - cost function = {}'.format(0, theta, compute_cost(x, y, theta, lamda)))
+def model_fit(x, y, theta, alpha, lamda, numiter):
     for i in range(numiter):
         theta = gradient_descent(x, y, theta, lamda, alpha)
         cost = compute_cost(x, y, theta, lamda)
         
-        print('Iter: {} - theta = {} - cost function = {}'.format(i+1, theta, cost))
+        print('Iter: {} - cost function = {}'.format(i+1, cost))
 
     return theta
 
@@ -95,7 +116,12 @@ def save_model(theta): #DONE
 # Predict: predict whether a set of microchips are eligible to be sold on market (pass an array of 1 element for prediction of 1 microchip).
 # INPUT: [a, b] with a, b is feature
 def predict(x, theta): #DONE
-    h_theta = 1 / (1 + exp(-(x @ theta.T)))
+    print('-------------------------')
+    print(x)
+    print('len:',len(x))
+    print(theta)
+    print('len:', len(theta))
+    h_theta = sigmoid(x, theta)
     if h_theta < 0.5:
         y = 0
     else:
@@ -124,7 +150,8 @@ def save_predict_accuracy(x_predict, x, y, theta, lamda): #DONE_not test yet
 
     accuracy = calculate_accuracy(x, y, theta)
     cost = compute_cost(x, y, theta, lamda)
-    pred =  predict(x_predict, theta)
+    # pred =  predict(x_predict, theta)
+    pred = 0
 
     with open('accuracy.json', 'w') as file:
         result = {
@@ -136,6 +163,7 @@ def save_predict_accuracy(x_predict, x, y, theta, lamda): #DONE_not test yet
         }
         json.dump(result, file)
 
+    # return accuracy, cost
     return accuracy, cost, pred
 
 #-----------------------------------------------------------
@@ -145,8 +173,8 @@ if __name__ == '__main__':
     alpha, lamda, numiter = read_training_configuration()
     
     # - Training data from file training_data.txt.
-    x, y = read_training_data()
-    theta = model_fit(x, y, alpha, lamda, numiter)
+    x, y, theta = read_training_data()
+    theta = model_fit(x, y, theta, alpha, lamda, numiter)
 
     # print(theta)
     # - Save model to file model.json.
