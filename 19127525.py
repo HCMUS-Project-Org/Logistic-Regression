@@ -1,7 +1,7 @@
 # Import library
 import  numpy as np
 import json
-from math import log, exp
+from math import log10, exp
 from map_feature import map_feature
 
 # Compute_cost: calculate the cost of model of data set (the formula for calculating cost function is provided in “3. The formulas”).
@@ -12,7 +12,7 @@ def compute_cost(x, y, theta, lamda): #DONE_not test yet!
 
     for i in range(len(x)):
         h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
-        Jl += -y[i] * log(h_theta) - (1-y[i]) * log(1 - h_theta)
+        Jl += -y[i] * log10(h_theta) - (1-y[i]) * log10(1 - h_theta)
 
     for j in range(len(theta)):
         Jr += theta[j]**2
