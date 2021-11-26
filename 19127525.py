@@ -3,26 +3,15 @@ import  numpy as np
 import json
 from map_feature import map_feature
 import matplotlib.pyplot as plt
-# from matplotlib.colors import ListedColormap
-
 
 
 # Compute_cost: calculate the cost of model of data set (the formula for calculating cost function is provided in “3. The formulas”).
-def compute_cost(x, y, theta, lamda): #DONE_not test yet!
+def compute_cost(x, y, theta, lamda):
     m = len(x)
     Jl = 0
     Jr = 0
-    # print('-------------------------')
-    # print(x)
-    # print('len:',len(x),len(x[0]))
-    # print(theta)
-    # print('len:', len(theta))
 
     for i in range(len(x)-1):
-        # print(i)
-        # print('x0:',x[0])
-        # print('theta0:',theta)
-        # h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
         h_theta = sigmoid(x[i], theta)
         Jl += -y[i] * np.log(h_theta) - (1-y[i]) * np.log(1 - h_theta)
 
@@ -37,8 +26,9 @@ def compute_cost(x, y, theta, lamda): #DONE_not test yet!
 def sigmoid(x, theta):
     return 1/(1 + np.exp(-(x @ theta.T)))
 
+
 # Compute_gradient: calculate the gradient vector of the cost function (the formula for calculating the gradient vector is provided in “3. The formulas”).
-def compute_gradient(x, y, theta, lamda): #DONE_not test yet!
+def compute_gradient(x, y, theta, lamda):
     dJ = []
     m = len(x)
 
@@ -46,7 +36,6 @@ def compute_gradient(x, y, theta, lamda): #DONE_not test yet!
         d_j = 0
 
         for i in range(len(x)):
-            # h_theta =  1 / (1 + exp(-(x[i] @ theta.T)))
             h_theta =  sigmoid(x[i],theta)
             d_j += (h_theta-y[i])*x[i][j]
 
@@ -60,7 +49,7 @@ def compute_gradient(x, y, theta, lamda): #DONE_not test yet!
 
 
 # Gradient_descent: calculate the gradient descent.
-def gradient_descent(x, y, theta, lamda, alpha): #DONE_not test yet
+def gradient_descent(x, y, theta, lamda, alpha): 
     dJ = compute_gradient(x, y, theta, lamda)
 
     for j in range(len(theta)):
@@ -68,17 +57,17 @@ def gradient_descent(x, y, theta, lamda, alpha): #DONE_not test yet
     
     return theta
 
+
 # Read the training configuration from file config.json
-def read_training_configuration(): #DONE
+def read_training_configuration():
     #Load config
     with open('config.json',) as f:
         configs = json.load(f)
     return configs['Alpha'], configs['Lambda'], configs['NumIter']
 
 
-    
 # Read the training data from file training_data.txt
-def read_training_data(): #DONE
+def read_training_data(): 
     datas = np.loadtxt('training_data.txt', delimiter = ',')
     
     # classify data into x, y
@@ -87,12 +76,13 @@ def read_training_data(): #DONE
     x2 = np.array(x_raw[:,1])
     X0 = map_feature(x1, x2)
     x = np.c_[np.ones(len(X0),dtype='int64'), X0]
-   
+
     y = datas[: , 2]
 
     theta = np.zeros(x.shape[1])
 
     return x_raw, x, y, theta
+
 
 # Training data from file training_data.txt.
 def model_fit(x, y, theta, alpha, lamda, numiter):
@@ -106,8 +96,9 @@ def model_fit(x, y, theta, alpha, lamda, numiter):
 
     return theta
 
+
 # Save model to file model.json.
-def save_model(theta): #DONE
+def save_model(theta): 
     model = {
         'theta': theta.tolist()
     }
@@ -117,9 +108,10 @@ def save_model(theta): #DONE
     
     print('Save model....DONE!')
 
+
 # Predict: predict whether a set of microchips are eligible to be sold on market (pass an array of 1 element for prediction of 1 microchip).
 # INPUT: [a, b] with a, b is feature
-def predict(x, theta): #DONE
+def predict(x, theta):
     h_theta = sigmoid(x, theta)
     if h_theta < 0.5:
         y = 0
@@ -128,8 +120,9 @@ def predict(x, theta): #DONE
 
     return y
 
+
 # Calculate  accuracy  of  training  data  set
-def calculate_accuracy(x, y, theta): #DONE
+def calculate_accuracy(x, y, theta): 
     pred = []
     for i in range(len(x)):
         pred.append(predict(x[i], theta))
@@ -143,9 +136,9 @@ def calculate_accuracy(x, y, theta): #DONE
     print('Caculate accuracy...DONE!')
     return accuracy
 
+
 # Make prediction and calculate accuracy of training data set, save result to file accuracy.json.
-# x_predict = [0.2, 0.05] INPUT 1 microchip feature
-def save_predict_accuracy(x, y, theta, lamda): #DONE
+def save_predict_accuracy(x, y, theta, lamda): 
     accuracy = calculate_accuracy(x, y, theta)
     cost = compute_cost(x, y, theta, lamda)
 
@@ -158,6 +151,7 @@ def save_predict_accuracy(x, y, theta, lamda): #DONE
 
     print('Save accuracy...DONE!')
     return accuracy, cost
+
 
 def ploting_decision_boundary(x_raw, y, theta):
     xs = np.linspace(min(x_raw[:,0]),max(y),num=10)
@@ -190,6 +184,7 @@ def ploting_decision_boundary(x_raw, y, theta):
     plt.show()
 
     print('Draw decision boundary...DONE!')
+
 
 #-----------------------------------------------------------
 # Main program:
